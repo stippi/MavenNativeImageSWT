@@ -2,9 +2,11 @@ package com.github.stippi.ui;
 
 import com.github.stippi.model.Document;
 import com.github.stippi.model.DocumentListener;
+import com.github.stippi.ui.jface.IconAction;
+import org.eclipse.jface.action.Action;
 import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.LocationAdapter;
 import org.eclipse.swt.browser.LocationEvent;
+import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.SWT;
@@ -19,6 +21,8 @@ public class BrowserPanel extends Composite {
 
     private final Document  fDocument;
     private final Browser   fBrowser;
+    private final Action    fBackAction;
+    private final Action    fForwardAction;
 
     public BrowserPanel(Composite parent, Document document) {
         super(parent, SWT.NULL);
@@ -28,10 +32,12 @@ public class BrowserPanel extends Composite {
         addDisposeListener(disposeEvent -> fDocument.removeListener(domUpdater));
 
         fBrowser = new Browser(this, SWT.NULL);
-        fBrowser.addLocationListener(new LocationAdapter() {
+        fBrowser.addLocationListener(new LocationListener() {
             @Override
             public void changing(LocationEvent locationEvent) {
-                if (locationEvent.location.startsWith("dq://focus")) {
+                if ("about:blank".equals(locationEvent.location)) {
+                    loadBrowserContents();
+                } else if (locationEvent.location.startsWith("dq://focus")) {
                     try {
                         String query = locationEvent.location.split("\\?")[1];
                         Map<String, String> params = splitQuery(query);
@@ -46,11 +52,44 @@ public class BrowserPanel extends Composite {
                     locationEvent.doit = false;
                 }
             }
+
+            @Override
+            public void changed(LocationEvent locationEvent) {
+                updateActions();
+            }
         });
 
+        fBackAction = new IconAction("Back", "go previous") {
+            @Override
+            public void run() {
+                fBrowser.back();
+            }
+        };
+
+        fForwardAction = new IconAction("Forward", "go next") {
+            @Override
+            public void run() {
+                fBrowser.forward();
+            }
+        };
+
         loadBrowserContents();
+        updateActions();
 
         setLayout(new FillLayout());
+    }
+
+    public Action getNavigateBackAction() {
+        return fBackAction;
+    }
+
+    public Action getNavigateForwardAction() {
+        return fForwardAction;
+    }
+
+    private void updateActions() {
+        fBackAction.setEnabled(fBrowser.isBackEnabled());
+        fForwardAction.setEnabled(fBrowser.isForwardEnabled());
     }
 
     private static Map<String, String> splitQuery(String query) {
@@ -70,7 +109,7 @@ public class BrowserPanel extends Composite {
         try {
             if (resource != null) {
                 String html = new String(resource.readAllBytes());
-                fBrowser.setText(html);
+                fBrowser.setText(html, true);
             }
         } catch (Exception e) {
             e.printStackTrace();

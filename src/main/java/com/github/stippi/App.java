@@ -26,7 +26,7 @@ public class App {
 
     private static Shell createMainWindow(Document document) {
         Shell shell = new Shell();
-        shell.setText("Hello Club23");
+        shell.setText("SWT native image demo");
         createInterface(shell, document);
         return shell;
     }

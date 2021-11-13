@@ -1,0 +1,14 @@
+{
+  "resources": [
+    {"pattern": "\\QMETA-INF/services/java.nio.file.spi.FileSystemProvider\\E"},
+    {"pattern": ".*\\.png$"},
+    {"pattern": ".*\\.xml$"},
+    {"pattern": ".*\\.html$"},
+    {"pattern": ".*\\.json$"},
+    {"pattern": ".*\\.messages$"},
+    {"pattern": ".*\\.jnilib$"}
+  ],
+  "bundles": [
+    {"name": "org.eclipse.swt.internal.SWTMessages"}
+  ]
+}
